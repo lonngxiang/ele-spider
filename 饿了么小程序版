@@ -1,0 +1,126 @@
+import requests
+import json
+import csv
+import pandas as pd
+import time
+
+lists_content=[]
+word_pd=pd.read_csv(r"C:\Users\Lavector\Desktop\百事小红书\ele1.csv",engine='python',header=None).values.tolist()
+print(word_pd)
+for m in range(len(word_pd)):
+    key_word=word_pd[m][0]
+    print(key_word)
+    try:
+        url="https://mainsite-restapi.ele.me/shopping/v2/restaurants/search?extras[]=activities&search_item_type=3&is_rewrite=1&latitude=22.516679&longitude=113.936019&keyword={}&order_by=0&offset=0&limit=10&terminal=weapp".format(key_word)
+
+        headers={
+        "Accept-Encoding":"gzip",
+        "referer":"https://servicewechat.com/wxece3a9a4c82f58c9/176/page-frame.html",
+        "x-shard":"loc=113.936019,22.516679",
+        "cookie":"SID=eAUFnFX0Zbfu5SiLmCBLTt64bNyF2GSqynMw",
+        "content-type":"application/json",
+        "User-Agent":"Mozilla/5.0 (Linux; Android 6.0.1; MuMu Build/V417IR; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/52.0.2743.100 Mobile Safari/537.36 MicroMessenger/6.6.7.1321(0x26060736) NetType/WIFI Language/zh_CN MicroMessenger/6.6.7.1321(0x26060736) NetType/WIFI Language/zh_CN",
+        "Host":"mainsite-restapi.ele.me",
+        "Connection":"Keep-Alive",
+
+        }
+        html=requests.get(url,headers=headers,verify=False).text
+        time.sleep(2)
+        html=json.loads(html)
+        restaurants=html['inside']["3"]["restaurant_with_foods"]
+        print(restaurants)
+        print(len(restaurants))
+        if len(restaurants) >=5:
+            for i in range(5):
+                shop_name=restaurants[i]["restaurant"]["name"]
+                shop_id=restaurants[i]["restaurant"]["id"]
+                shop_rate=restaurants[i]["restaurant"]["rating"]
+                shop_rely=restaurants[i]["restaurant"]["rating_count"]
+                shop_url=restaurants[i]["restaurant"]["scheme"]
+                shop_foods_name = ""
+                for j in range(len(restaurants[i]["foods"])):
+                    shop_foods_name+=restaurants[i]["foods"][j]['name']+"{{{{{}}}}}"
+                print(shop_name,shop_id,shop_rate,shop_rely,shop_foods_name)
+                url1="https://h5.ele.me/pizza/ugc/restaurants/{}/batch_comments?has_content=true&offset=0&limit=20".format(shop_id)
+                headers1={
+                    "Host":"h5.ele.me",
+                    "Connection":"keep-alive",
+                    "User-Agent":"Mozilla/5.0 (Linux; Android 6.0.1; MuMu Build/V417IR; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/52.0.2743.100 Mobile Safari/537.36 MicroMessenger/6.6.7.1321(0x26060736) NetType/WIFI Language/zh_CN MicroMessenger/6.6.7.1321(0x26060736) NetType/WIFI Language/zh_CN miniProgram",
+                    "x-shard":"shopid={};loc=113.936019,22.516679".format(shop_id),
+                    "Accept":"*/*",
+                    "Referer":"https://h5.ele.me/shop/",
+                    "Accept-Encoding":"gzip, deflate",
+                    "Accept-Language":"zh-CN,en-US;q=0.8",
+                    "Cookie":"perf_ssid=xyyvob7evuki0294ufdmz7g367ec1e8d7ti_2018-12-25; cna=tPWoFBQiUSACAT2U8+AvSuXB; _utrace=f581d37d6d2894dab36eab4df5928444_2018-12-25; track_id=1547709004|9f932c41c9ed5855c61245cb12271e13939951ec221730de18|6640aee9e0134517080d9b27b4ececac; pizza7567632f76332f72=5xMqRQuOWng_3Lh8jjs5aO_7huBI3uInRw5nmh_wAqrLhdCwd2TaqKMm35NBFzFC; isg=BImJ4HAPMX69V83unBhuhOtUk7cjfk9JL7E71yv-BXCvcqmEcyaN2HeDsJDhKhVA; SID=eAUFnFX0Zbfu5SiLmCBLTt64bNyF2GSqynMw; USERID=596176850",
+                    "X-Requested-With":"com.tencent.mm",
+                }
+                html1=requests.get(url1,headers=headers1,verify=False).text
+                html1=json.loads(html1)
+                for k in range(len(html1['comments'])):
+                    reply_username=html1['comments'][k]['username']
+                    reply_rate=html1['comments'][k]['rating']
+                    reply_time=html1['comments'][k]['rated_at']
+                    reply_text=html1['comments'][k]['rating_text']
+                    reply_buy=""
+                    for l in range(len(html1['comments'][k]['food_ratings'])):
+                        reply_buy+=html1['comments'][k]['food_ratings'][l]['rate_name']
+                    print(key_word,"王府井",shop_name,shop_url,shop_rely,shop_foods_name,reply_username,reply_buy,reply_rate,reply_time,reply_text)
+                    lists_content.append([key_word,"王府井",shop_name,shop_url,shop_rely,shop_foods_name,reply_username,reply_buy,reply_rate,reply_time,reply_text])
+
+        else:
+            for i in range(len(restaurants)):
+                shop_name=restaurants[i]["restaurant"]["name"]
+                shop_id=restaurants[i]["restaurant"]["id"]
+                shop_rate=restaurants[i]["restaurant"]["rating"]
+                shop_rely=restaurants[i]["restaurant"]["rating_count"]
+                shop_url=restaurants[i]["restaurant"]["scheme"]
+                shop_foods_name = ""
+                for j in range(len(restaurants[i]["foods"])):
+                    shop_foods_name+=restaurants[i]["foods"][j]['name']+"{{{{{}}}}}"
+                print(shop_name,shop_id,shop_rate,shop_rely,shop_foods_name)
+                url1="https://h5.ele.me/pizza/ugc/restaurants/{}/batch_comments?has_content=true&offset=0&limit=20".format(shop_id)
+                headers1={
+                    "Host": "h5.ele.me",
+                    "Connection": "keep-alive",
+                    "User-Agent": "Mozilla/5.0 (Linux; Android 6.0.1; MuMu Build/V417IR; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/52.0.2743.100 Mobile Safari/537.36 MicroMessenger/6.6.7.1321(0x26060736) NetType/WIFI Language/zh_CN MicroMessenger/6.6.7.1321(0x26060736) NetType/WIFI Language/zh_CN miniProgram",
+                    "x-shard": "shopid={};loc=113.936019,22.516679".format(shop_id),
+                    "Accept": "*/*",
+                    "Referer": "https://h5.ele.me/shop/",
+                    "Accept-Encoding": "gzip, deflate",
+                    "Accept-Language": "zh-CN,en-US;q=0.8",
+                    "Cookie":"perf_ssid=xyyvoble4waynps09z7g367ec1e8d7ti_2018-12-25; cna=tPWoFBQiUSACAT2U8+AvSuXB; _utrace=f581d37d6d2894dab36eab4df5928444_2018-12-25; track_id=1547709004|9f932c41c9ed5855c61245cb12271e13939951ec221730de18|6640aee9e0134517080d9b27b4ececac; pizza7567632f76332f72=5xMqRQuOWng_3Lh8jjs5aO_7huBI3uInRw5nmh_wAqrLhdCwd2TaqKMm35NBFzFC; isg=BImJ4HAPMX69V83unBhuhOtUk7cjfk9JL7E71yv-BXCvcqmEcyaN2HeDsJDhKhVA; SID=eAUFnFX0Zbfu5SiLmCBLTt64bNyF2GSqynMw; USERID=596176850",
+                    "X-Requested-With": "com.tencent.mm",
+                }
+                html1=requests.get(url1,headers=headers1,verify=False).text
+                html1=json.loads(html1)
+                for k in range(len(html1['comments'])):
+                    reply_username=html1['comments'][k]['username']
+                    reply_rate=html1['comments'][k]['rating']
+                    reply_time=html1['comments'][k]['rated_at']
+                    reply_text=html1['comments'][k]['rating_text']
+                    reply_buy=""
+                    for l in range(len(html1['comments'][k]['food_ratings'])):
+                        reply_buy+=html1['comments'][k]['food_ratings'][l]['rate_name']
+                    print(key_word,"王府井",shop_name,shop_url,shop_rely,shop_foods_name,reply_username,reply_buy,reply_rate,reply_time,reply_text)
+                    lists_content.append([key_word,"王府井",shop_name,shop_url,shop_rely,shop_foods_name,reply_username,reply_buy,reply_rate,reply_time,reply_text])
+            # pass
+
+    except:
+        with open("佳王府井.csv", "w", encoding="utf-8", newline="") as f:
+            k = csv.writer(f, dialect="excel")
+            k.writerow(["关键词", "地点","店铺名称", "店铺链接", "店铺评论数", "热销产品", "评论id","购买产品",  "评论评分", "评论时间", "评论内容"])
+
+            for list in lists_content:
+                k.writerow(list)
+print(lists_content)
+with open("佳井7.csv", "w", encoding="utf-8", newline="") as f:
+    k = csv.writer(f, dialect="excel")
+    k.writerow(["关键词", "地点","店铺名称", "店铺链接", "店铺评论数", "热销产品", "评论id","购买产品",  "评论评分", "评论时间", "评论内容"])
+
+    for list in lists_content:
+        k.writerow(list)
+
+
+
+
+
